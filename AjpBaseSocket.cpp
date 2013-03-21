@@ -4,7 +4,7 @@
  **	\author grymse@alhem.net
 **/
 /*
-Copyright (C) 2007-2010  Anders Hedstrom
+Copyright (C) 2007-2011  Anders Hedstrom
 
 This library is made available under the terms of the GNU GPL, with
 the additional exemption that compiling, linking, and/or using OpenSSL 
@@ -258,6 +258,14 @@ void AjpBaseSocket::put_string(char *buf, int& ptr, const std::string& zz)
 	memcpy(buf + ptr, zz.c_str(), zz.size());
 	ptr += (int)zz.size();
 	put_byte(buf, ptr, 0);
+}
+
+
+// ---------------------------------------------------------------------------
+void AjpBaseSocket::reset()
+{
+	m_state = m_ptr = 0;
+	m_length = 4;
 }
 
 

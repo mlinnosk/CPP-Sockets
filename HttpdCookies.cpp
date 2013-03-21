@@ -1,7 +1,7 @@
 /** \file HttpdCookies.cpp
 */
 /*
-Copyright (C) 2003-2010  Anders Hedstrom
+Copyright (C) 2003-2011  Anders Hedstrom
 
 This library is made available under the terms of the GNU GPL, with
 the additional exemption that compiling, linking, and/or using OpenSSL 
@@ -34,6 +34,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "Parse.h"
 #include "HTTPSocket.h"
 #include "HttpdCookies.h"
+#include <cstdio>
 
 #ifdef SOCKETS_NAMESPACE
 namespace SOCKETS_NAMESPACE {

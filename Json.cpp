@@ -3,6 +3,12 @@
 #include "Utility.h"
 #include <cstdio>
 
+#ifdef _WIN32
+#ifdef GetObject
+#undef GetObject
+#endif
+#endif
+
 #define C buffer[index]
 
 #ifdef SOCKETS_NAMESPACE
@@ -240,12 +246,11 @@ Json Json::Parse(const std::string& data)
 
 
 // --------------------------------------------------------------------------------
-char Json::Parse(const char *buffer, size_t& index)
+int Json::Token(const char *buffer, size_t& index, std::string& ord)
 {
 	while (C == ' ' || C == 9 || C == 13 || C == 10)
 		++index;
 	size_t x = index; // origin
-	std::string ord;
 	if (C == '-' || isdigit(C)) // Number
 	{
 		bool dot = false;
@@ -260,18 +265,16 @@ char Json::Parse(const char *buffer, size_t& index)
 			++index;
 		}
 		size_t sz = index - x;
-		ord.resize(sz);
-		memcpy(&ord[0], &buffer[x], sz);
+		ord = std::string(buffer + x, sz);
 		if (dot)
 		{
 			m_type = TYPE_REAL;
-			m_d_value = atof(ord.c_str());
 		}
 		else
 		{
 			m_type = TYPE_INTEGER;
-			m_i_value = atoi(ord.c_str());
 		}
+		return -m_type;
 	}
 	else
 	if (C == 34) // " - String
@@ -292,37 +295,74 @@ char Json::Parse(const char *buffer, size_t& index)
 			++index;
 		}
 		size_t sz = index - x;
-		ord.resize(sz);
-		memcpy(&ord[0], &buffer[x], sz);
+		ord = std::string(buffer + x, sz);
 		decode(ord);
 		++index;
 		m_type = TYPE_STRING;
-		m_str_value = ord;
+		return -m_type;
 	}
 	else
 	if (!strncmp(&buffer[index], "null", 4)) // null value
 	{
 		m_type = TYPE_UNKNOWN;
+		ord = std::string(buffer + x, 4);
 		index += 4;
+		return -m_type;
 	}
 	else
 	if (!strncmp(&buffer[index], "true", 4)) // Boolean: true
 	{
 		m_type = TYPE_BOOLEAN;
+		ord = std::string(buffer + x, 4);
 		m_b_value = true;
 		index += 4;
+		return -m_type;
 	}
 	else
 	if (!strncmp(&buffer[index], "false", 5)) // Boolean: false
 	{
 		m_type = TYPE_BOOLEAN;
+		ord = std::string(buffer + x, 5);
 		m_b_value = false;
 		index += 5;
+		return -m_type;
+	}
+	return buffer[index++];
+}
+
+
+// --------------------------------------------------------------------------------
+char Json::Parse(const char *buffer, size_t& index)
+{
+	std::string ord;
+	int token = Token(buffer, index, ord);
+	if (token == -TYPE_REAL || token == -TYPE_INTEGER)
+	{
+		if (token == -TYPE_REAL)
+		{
+			m_d_value = atof(ord.c_str());
+		}
+		else
+		{
+			m_i_value = atoi(ord.c_str());
+		}
 	}
 	else
-	if (C == '[') // Array
+	if (token == -TYPE_STRING)
 	{
-		++index;
+		m_str_value = ord;
+	}
+	else
+	if (token == -TYPE_UNKNOWN)
+	{
+	}
+	else
+	if (token == -TYPE_BOOLEAN)
+	{
+	}
+	else
+	if (token == '[') // Array
+	{
 		m_type = TYPE_ARRAY;
 		while (true)
 		{
@@ -348,15 +388,13 @@ char Json::Parse(const char *buffer, size_t& index)
 		}
 	}
 	else
-	if (C == ']') // end of Array
+	if (token == ']') // end of Array
 	{
-		++index;
 		return ']';
 	}
 	else
-	if (C == '{') // Object
+	if (token == '{') // Object
 	{
-		++index;
 		m_type = TYPE_OBJECT;
 		int state = 0;
 		std::string element_name;
@@ -395,21 +433,18 @@ char Json::Parse(const char *buffer, size_t& index)
 		}
 	}
 	else
-	if (C == '}') // end of Object
+	if (token == '}') // end of Object
 	{
-		++index;
 		return '}';
 	}
 	else
-	if (C == ',')
+	if (token == ',')
 	{
-		++index;
 		return ',';
 	}
 	else
-	if (C == ':')
+	if (token == ':')
 	{
-		++index;
 		return ':';
 	}
 	else

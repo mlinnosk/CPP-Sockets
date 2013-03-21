@@ -4,7 +4,7 @@
  **	\author grymse@alhem.net
 **/
 /*
-Copyright (C) 2010  Anders Hedstrom
+Copyright (C) 2010-2011  Anders Hedstrom
 
 This library is made available under the terms of the GNU GPL.
 

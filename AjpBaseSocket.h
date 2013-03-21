@@ -4,7 +4,7 @@
  **	\author grymse@alhem.net
 **/
 /*
-Copyright (C) 2007-2010  Anders Hedstrom
+Copyright (C) 2007-2011  Anders Hedstrom
 
 This library is made available under the terms of the GNU GPL, with
 the additional exemption that compiling, linking, and/or using OpenSSL 
@@ -76,6 +76,9 @@ protected:
 	void put_boolean(char *buf, int& ptr, bool zz);
 	void put_integer(char *buf, int& ptr, short zz);
 	void put_string(char *buf, int& ptr, const std::string& zz);
+
+	/** Reset to original state */
+	void reset();
 
 	static Initializer Init;
 

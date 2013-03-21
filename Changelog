@@ -1,8 +1,21 @@
 diff for next release always available @ http://www.alhem.net/Sockets/latest_diff.html
 
-next
+2.3.9.6
 --------
+Fix typo i ListenSocket.h. Json class updated. Ajp connector class updated
+after generous source code donation - big Thanks. Added class name prefix on
+IHttpServer virtual methods. Ignore incoming data in httpdform formdata
+parse method if not any of the required content types. Validate socket ptr
+before deleteing in sockethandler. Define int64_t on _win32 platform. Update
+port number in udpsocket after call to Bind method. Preserve m_b_check*
+flags in sockethandler during add phase. Timing problem during detach
+process fixed.
 
+2.3.9.5
+--------
+Added missing includes. Removed ambigouos constructors and operators
+using int64_t. Made memcpy in UdpSocket more safe when address size
+differs.
 
 2.3.9.4
 --------

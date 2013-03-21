@@ -3,7 +3,7 @@
  **	\author grymse@alhem.net
 **/
 /*
-Copyright (C) 2004-2010  Anders Hedstrom
+Copyright (C) 2004-2011  Anders Hedstrom
 
 This library is made available under the terms of the GNU GPL, with
 the additional exemption that compiling, linking, and/or using OpenSSL 
@@ -54,7 +54,12 @@ typedef unsigned long socketuid_t;
 
 // int64
 #ifdef _WIN32
+#ifndef uint64_t
 typedef unsigned __int64 uint64_t;
+#endif
+#ifndef int64_t
+typedef __int64 int64_t;
+#endif
 #else
 #include <stdlib.h>
 #ifdef SOLARIS

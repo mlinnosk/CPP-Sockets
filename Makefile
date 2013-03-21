@@ -1,5 +1,6 @@
 # platforms:
 #  linux-x86-32
+#  linux-x86-64
 #  win32-cygwin
 #  solaris9-sparc-64
 #  macosx
@@ -35,7 +36,10 @@ PREFIX =	/usr/local
 #PREFIX =	/usr
 
 # include paths
-INCLUDE =	-I/usr/include/libxml2 
+INCLUDE =	-I/usr/include/libxml2
+
+# Add for libxml2 if not in above location
+#CFLAGS +=	`xml2-config --cflags`
 
 # CXX, CFLAGS, LIBS, LDFLAGS, LDFLAGSSO
 include		Makefile.Defines.$(PLATFORM)
@@ -46,7 +50,6 @@ include		Makefile.Defines.$(PLATFORM)
 
 # Enable insane amounts of debug output to stdout/stderr:
 #CFLAGS +=	-D_DEBUG
-
 
 CPPFLAGS =	$(CFLAGS) 
 
@@ -110,13 +113,12 @@ install:	all
 
 install_shared:	install shared
 		@mkdir -p $(DESTDIR)/$(PREFIX)/lib/pkgconfig
-		cp $(SHAREDLIBNAME) $(DESTDIR)/$(PREFIX)/lib
-		cp -a pkgconfig/*pc $(DESTDIR)/$(PREFIX)/lib/pkgconfig
+		install -m 0644 $(SHAREDLIBNAME) $(DESTDIR)/$(PREFIX)/lib
+		install -m 0644  pkgconfig/*pc $(DESTDIR)/$(PREFIX)/lib/pkgconfig
 		rm -f $(DESTDIR)/$(PREFIX)/lib/lib$(NAME).so
 		rm -f $(DESTDIR)/$(PREFIX)/lib/lib$(NAME).so.$(MAJOR)
-		ln -s $(DESTDIR)/$(PREFIX)/lib/lib$(NAME).so.$(MAJOR).$(MINOR) $(DESTDIR)/$(PREFIX)/lib/lib$(NAME).so
-		ln -s $(DESTDIR)/$(PREFIX)/lib/lib$(NAME).so.$(MAJOR).$(MINOR) $(DESTDIR)/$(PREFIX)/lib/lib$(NAME).so.$(MAJOR)
-		ldconfig
+		ln -s lib$(NAME).so.$(MAJOR).$(MINOR) $(DESTDIR)/$(PREFIX)/lib/lib$(NAME).so
+		ln -s lib$(NAME).so.$(MAJOR).$(MINOR) $(DESTDIR)/$(PREFIX)/lib/lib$(NAME).so.$(MAJOR)
 
 # no binary files, zip will translate lf to cr lf
 FILES =		*.h *.cpp \

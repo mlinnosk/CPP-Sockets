@@ -3,7 +3,7 @@
  **	\author grymse@alhem.net
 **/
 /*
-Copyright (C) 2004-2010  Anders Hedstrom
+Copyright (C) 2004-2011  Anders Hedstrom
 
 This library is made available under the terms of the GNU GPL, with
 the additional exemption that compiling, linking, and/or using OpenSSL 
@@ -86,12 +86,18 @@ int UdpSocket::Bind(port_t &port, int range)
 	if (IsIpv6())
 	{
 		Ipv6Address ad(port);
-		return Bind(ad, range);
+		int n = Bind(ad, range);
+		if (m_bind_ok)
+			port = m_port;
+		return n;
 	}
 #endif
 #endif
 	Ipv4Address ad(port);
-	return Bind(ad, range);
+	int n = Bind(ad, range);
+	if (m_bind_ok)
+		port = m_port;
+	return n;
 }
 
 
@@ -104,7 +110,10 @@ int UdpSocket::Bind(const std::string& intf, port_t &port, int range)
 		Ipv6Address ad(intf, port);
 		if (ad.IsValid())
 		{
-			return Bind(ad, range);
+			int n = Bind(ad, range);
+			if (m_bind_ok)
+				port = m_port;
+			return n;
 		}
 		SetCloseAndDelete();
 		return -1;
@@ -114,7 +123,10 @@ int UdpSocket::Bind(const std::string& intf, port_t &port, int range)
 	Ipv4Address ad(intf, port);
 	if (ad.IsValid())
 	{
-		return Bind(ad, range);
+		int n = Bind(ad, range);
+		if (m_bind_ok)
+			port = m_port;
+		return n;
 	}
 	SetCloseAndDelete();
 	return -1;
@@ -124,7 +136,10 @@ int UdpSocket::Bind(const std::string& intf, port_t &port, int range)
 int UdpSocket::Bind(ipaddr_t a, port_t &port, int range)
 {
 	Ipv4Address ad(a, port);
-	return Bind(ad, range);
+	int n = Bind(ad, range);
+	if (m_bind_ok)
+		port = m_port;
+	return n;
 }
 
 
@@ -133,7 +148,10 @@ int UdpSocket::Bind(ipaddr_t a, port_t &port, int range)
 int UdpSocket::Bind(in6_addr a, port_t &port, int range)
 {
 	Ipv6Address ad(a, port);
-	return Bind(ad, range);
+	int n = Bind(ad, range);
+	if (m_bind_ok)
+		port = m_port;
+	return n;
 }
 #endif
 #endif

@@ -4,7 +4,7 @@
  **/
 
 /*
-Copyright (C) 1999-2010  Anders Hedstrom
+Copyright (C) 1999-2011  Anders Hedstrom
 
 This library is made available under the terms of the GNU GPL, with
 the additional exemption that compiling, linking, and/or using OpenSSL 
@@ -430,20 +430,6 @@ void HttpdForm::ParseFormData(IFile *infil, const std::string& content_type, siz
 			cgi = new CGI(slask, "");
 		}
 		m_cgi.push_back(cgi);
-	}
-	else // read other content up to a limit
-	if (content_length > 0 && content_length < 500000)
-	{
-		int ptr = 0;
-		int cl = (int)content_length;
-		m_content.resize(cl);
-		while (ptr < cl)
-		{
-			int remaining = cl - ptr;
-			int n = fread(&m_content[ptr], 1, remaining, stdin);
-			if (n > 0)
-				ptr += n;
-		}
 	}
 }
 

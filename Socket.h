@@ -3,7 +3,7 @@
  ** \author grymse@alhem.net
 **/
 /*
-Copyright (C) 2004-2010  Anders Hedstrom
+Copyright (C) 2004-2011  Anders Hedstrom
 
 This library is made available under the terms of the GNU GPL, with
 the additional exemption that compiling, linking, and/or using OpenSSL 

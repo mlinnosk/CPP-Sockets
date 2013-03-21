@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 		;
 //	printf(" resolver ready!\n");
 */
-	std::string hostname = argc < 2 ? "www.ipv6.org" : argv[1];
+	std::string hostname = argc < 2 ? "ipv6.google.com" : argv[1];
 
 	{
 		printf("Using hostname              : %s\n", hostname.c_str());

@@ -5,6 +5,12 @@
 #include <list>
 #include <map>
 
+#ifdef _WIN32
+#ifdef GetObject
+#undef GetObject
+#endif
+#endif
+
 #ifdef SOCKETS_NAMESPACE
 namespace SOCKETS_NAMESPACE {
 #endif
@@ -16,7 +22,7 @@ public:
 	typedef std::map<std::string, Json> json_map_t;
 
 	typedef enum {
-		TYPE_UNKNOWN = 0,
+		TYPE_UNKNOWN = 1,
 		TYPE_INTEGER,
 		TYPE_REAL,
 		TYPE_STRING,
@@ -80,6 +86,8 @@ public:
 	std::string encode(const std::string&) const;
 
 private:
+	virtual int Token(const char *buffer, size_t& index, std::string& ord);
+	//
 	json_type_t m_type;
 	long m_i_value;
 	double m_d_value;

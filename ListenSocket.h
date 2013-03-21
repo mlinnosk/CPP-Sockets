@@ -3,7 +3,7 @@
  **	\author grymse@alhem.net
 **/
 /*
-Copyright (C) 2004-2010  Anders Hedstrom
+Copyright (C) 2004-2011  Anders Hedstrom
 
 This library is made available under the terms of the GNU GPL, with
 the additional exemption that compiling, linking, and/or using OpenSSL 
@@ -370,13 +370,13 @@ public:
 #ifdef IPPROTO_IPV6
 				if (sa_len == sizeof(struct sockaddr_in6))
 				{
-					if (reinterpret_cast<struck sockaddr_in6&>(sa).sin6_family == AF_INET6)
+					if (reinterpret_cast<struct sockaddr_in6&>(sa).sin6_family == AF_INET6)
 					{
-						Ipv6Address ad(reinterpret_cast<struck sockaddr_in6&>(sa).sin6_addr,
-							ntohs(reinterpret_cast<struck sockaddr_in6&>(sa).sin6_port));
-						ad.SetFlowinfo(reinterpret_cast<struck sockaddr_in6&>(sa).sin6_flowinfo);
+						Ipv6Address ad(reinterpret_cast<struct sockaddr_in6&>(sa).sin6_addr,
+							ntohs(reinterpret_cast<struct sockaddr_in6&>(sa).sin6_port));
+						ad.SetFlowinfo(reinterpret_cast<struct sockaddr_in6&>(sa).sin6_flowinfo);
 #ifndef _WIN32
-						ad.SetScopeId(reinterpret_cast<struck sockaddr_in6&>(sa).sin6_scope_id);
+						ad.SetScopeId(reinterpret_cast<struct sockaddr_in6&>(sa).sin6_scope_id);
 #endif
 						tmp -> SetRemoteAddress(ad);
 					}
@@ -432,13 +432,13 @@ public:
 #ifdef IPPROTO_IPV6
 				if (sa_len == sizeof(struct sockaddr_in6))
 				{
-					if (reinterpret_cast<struck sockaddr_in6&>(sa).sin6_family == AF_INET6)
+					if (reinterpret_cast<struct sockaddr_in6&>(sa).sin6_family == AF_INET6)
 					{
-						Ipv6Address ad(reinterpret_cast<struck sockaddr_in6&>(sa).sin6_addr,
-							ntohs(reinterpret_cast<struck sockaddr_in6&>(sa).sin6_port));
-						ad.SetFlowinfo(reinterpret_cast<struck sockaddr_in6&>(sa).sin6_flowinfo);
+						Ipv6Address ad(reinterpret_cast<struct sockaddr_in6&>(sa).sin6_addr,
+							ntohs(reinterpret_cast<struct sockaddr_in6&>(sa).sin6_port));
+						ad.SetFlowinfo(reinterpret_cast<struct sockaddr_in6&>(sa).sin6_flowinfo);
 #ifndef _WIN32
-						ad.SetScopeId(reinterpret_cast<struck sockaddr_in6&>(sa).sin6_scope_id);
+						ad.SetScopeId(reinterpret_cast<struct sockaddr_in6&>(sa).sin6_scope_id);
 #endif
 						tmp -> SetRemoteAddress(ad);
 					}

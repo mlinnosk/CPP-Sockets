@@ -53,6 +53,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #endif // _RUN_DP
 
 
+#define SOCKETS_NAMESPACE sockets
+#define SOCKETS_NAMESPACE_STR "sockets"
+
+
 /* OpenSSL support. */
 #define HAVE_OPENSSL
 
@@ -67,7 +71,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 
 /* Define NO_GETADDRINFO if your operating system does not support
    the "getaddrinfo" and "getnameinfo" function calls. */
-#define NO_GETADDRINFO
+//#define NO_GETADDRINFO
 
 
 /* Connection pool support. */

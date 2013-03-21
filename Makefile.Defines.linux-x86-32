@@ -1,4 +1,7 @@
-CXX =		g++
+#proper value defined in cotton script
+#CXX =		g++
+#AR = ar
+#RANLIB = ranlib
 
 CFLAGS +=	-Wall -g $(INCLUDE) -MD -D_VERSION='"$(VERSION)"'
 
@@ -17,11 +20,11 @@ LIBS +=		\
 
 OBJS +=		Semaphore.o
 
-LDFLAGSSO =	-shared \
+LDFLAGSSO +=	-shared \
 		-Wl,-lssl \
-		-Wl,-lcrypto \
-		-Wl,-lxml2 \
-		-Wl,-lpthread \
+		-Wl,-lcrypto
+#LDFLAGSSO +=	-Wl,-lxml2
+LDFLAGSSO +=	-Wl,-lpthread \
 		-Wl,-h$(SONAME) \
 		-Wl,-call_shared
 

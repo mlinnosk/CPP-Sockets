@@ -29,18 +29,22 @@ CONFNAME =	$(NAME)-config
 
 # .h files installed to $(DESTDIR)/$(PREFIX)/include/$(NAME)
 # static lib .a files installed to $(DESTDIR)/$(PREFIX)/lib
-PREFIX =	/usr/local
+PREFIX = /install
+DESTDIR := 
+# PREFIX :=  .
 
 # debian
 #PREFIX =	/usr
 
 # include paths
-INCLUDE =	-I/usr/include/libxml2 
+#INCLUDE =	-I/usr/include/libxml2
+INCLUDE =
 
 # CXX, CFLAGS, LIBS, LDFLAGS, LDFLAGSSO
 include		Makefile.Defines.$(PLATFORM)
 
 # uncomment these lines if the library should be in its own namespace
+#this is moved to sockets-config.h
 #CFLAGS +=	-DSOCKETS_NAMESPACE=sockets
 #CFLAGS +=	-DSOCKETS_NAMESPACE_STR='"sockets"'
 
@@ -57,8 +61,8 @@ all:		$(LIBNAME) $(PROGS) pc
 shared:		$(SHAREDLIBNAME)
 
 $(LIBNAME):	$(OBJS)
-		ar cru $@ $^
-		ranlib $@
+		$(AR) cru $@ $^
+		$(RANLIB) $@
 
 $(SHAREDLIBNAME): $(OBJS)
 		$(CXX) $(LDFLAGSSO) -o $@ $^
@@ -67,12 +71,13 @@ $(CONFNAME):	Sockets-config.o
 		$(CXX) $(LDFLAGS) -o $@ $^
 
 pc:
-		@cat pkgconfig/libsockets2.pc.IN | \
+		mkdir -p "${TMPDIR}/socks-2.3.9.3/"
+		cat pkgconfig/libsockets2.pc.IN | \
 			sed -e "s/%VERSION%/$(VERSION)/g"| \
-			sed -e "s/%NAME%/$(NAME)/g" > pkgconfig/libsockets2.pc 
-		@cat pkgconfig/libSockets.pc.IN | \
+			sed -e "s/%NAME%/$(NAME)/g" > ${TMPDIR}/socks-2.3.9.3/libsockets2.pc 
+		cat pkgconfig/libSockets.pc.IN | \
 			sed -e "s/%VERSION%/$(VERSION)/g"| \
-			sed -e "s/%NAME%/$(NAME)/g" > pkgconfig/libSockets.pc 
+			sed -e "s/%NAME%/$(NAME)/g" > ${TMPDIR}/socks-2.3.9.3/libSockets.pc 
 
 clean:
 		rm -f *.o *~ slask *.d $(PROGS) *.a *.so *.so.* */*~
@@ -89,9 +94,9 @@ diff:
 			$(HTDOCS)/Sockets/latest_diff.html
 
 install:	all 
-		@mkdir -p $(DESTDIR)/$(PREFIX)/lib
+		mkdir -p $(DESTDIR)/$(PREFIX)/lib
 		cp $(LIBNAME) $(DESTDIR)/$(PREFIX)/lib
-		@mkdir -p $(DESTDIR)/$(PREFIX)/include/$(NAME)
+		mkdir -p $(DESTDIR)/$(PREFIX)/include/$(NAME)
 		cp -a *.h $(DESTDIR)/$(PREFIX)/include/$(NAME)
 		@rm -f $(DESTDIR)/$(PREFIX)/include/$(NAME)/SSLSocket.*
 		@rm -f $(DESTDIR)/$(PREFIX)/include/$(NAME)/HttpsGetSocket.*
@@ -111,12 +116,13 @@ install:	all
 install_shared:	install shared
 		@mkdir -p $(DESTDIR)/$(PREFIX)/lib/pkgconfig
 		cp $(SHAREDLIBNAME) $(DESTDIR)/$(PREFIX)/lib
-		cp -a pkgconfig/*pc $(DESTDIR)/$(PREFIX)/lib/pkgconfig
+		# cp -a pkgconfig/*pc $(DESTDIR)/$(PREFIX)/lib/pkgconfig
+		cp -a ${TMPDIR}/socks-2.3.9.3/*pc $(DESTDIR)/$(PREFIX)/lib/pkgconfig
 		rm -f $(DESTDIR)/$(PREFIX)/lib/lib$(NAME).so
 		rm -f $(DESTDIR)/$(PREFIX)/lib/lib$(NAME).so.$(MAJOR)
 		ln -s $(DESTDIR)/$(PREFIX)/lib/lib$(NAME).so.$(MAJOR).$(MINOR) $(DESTDIR)/$(PREFIX)/lib/lib$(NAME).so
 		ln -s $(DESTDIR)/$(PREFIX)/lib/lib$(NAME).so.$(MAJOR).$(MINOR) $(DESTDIR)/$(PREFIX)/lib/lib$(NAME).so.$(MAJOR)
-		ldconfig
+		${LDCONFIG}
 
 # no binary files, zip will translate lf to cr lf
 FILES =		*.h *.cpp \

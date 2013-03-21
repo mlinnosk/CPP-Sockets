@@ -8,5 +8,5 @@ Description: C++ Sockets Library
 Version: %VERSION%
 Requires:
 Libs: -L${libdir} -l%NAME%
-Libs.private: -lssl -lcrypto -lxml2 -lpthread
+Libs.private: -lssl -lcrypto -lpthread
 Cflags: -I${includedir}

@@ -32,7 +32,6 @@ public:
 	Json(char value);
 	Json(short value);
 	Json(long value); //m_type(TYPE_INTEGER), m_i_value(value);
-	Json(int64_t value);
 	Json(double value); //m_type(TYPE_REAL), m_d_value(value);
 	Json(const char *value); //m_type(TYPE_STRING), m_str_value(value);
 	Json(const std::string& value); //m_type(TYPE_STRING), m_str_value(value);
@@ -52,7 +51,6 @@ public:
 	operator char() const;
 	operator short() const;
 	operator long() const;
-	operator int64_t() const;
 	operator double() const;
 	operator std::string() const;
 	operator bool() const;

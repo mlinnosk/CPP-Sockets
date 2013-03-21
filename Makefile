@@ -71,13 +71,13 @@ $(CONFNAME):	Sockets-config.o
 		$(CXX) $(LDFLAGS) -o $@ $^
 
 pc:
-		mkdir -p "${TMPDIR}/socks-2.3.9.3/"
+		mkdir -p "${TMPDIR}/socks-2.3.9.x/"
 		cat pkgconfig/libsockets2.pc.IN | \
 			sed -e "s/%VERSION%/$(VERSION)/g"| \
-			sed -e "s/%NAME%/$(NAME)/g" > ${TMPDIR}/socks-2.3.9.3/libsockets2.pc 
+			sed -e "s/%NAME%/$(NAME)/g" > ${TMPDIR}/socks-2.3.9.x/libsockets2.pc
 		cat pkgconfig/libSockets.pc.IN | \
 			sed -e "s/%VERSION%/$(VERSION)/g"| \
-			sed -e "s/%NAME%/$(NAME)/g" > ${TMPDIR}/socks-2.3.9.3/libSockets.pc 
+			sed -e "s/%NAME%/$(NAME)/g" > ${TMPDIR}/socks-2.3.9.x/libSockets.pc
 
 clean:
 		rm -f *.o *~ slask *.d $(PROGS) *.a *.so *.so.* */*~
@@ -117,7 +117,7 @@ install_shared:	install shared
 		@mkdir -p $(DESTDIR)/$(PREFIX)/lib/pkgconfig
 		cp $(SHAREDLIBNAME) $(DESTDIR)/$(PREFIX)/lib
 		# cp -a pkgconfig/*pc $(DESTDIR)/$(PREFIX)/lib/pkgconfig
-		cp -a ${TMPDIR}/socks-2.3.9.3/*pc $(DESTDIR)/$(PREFIX)/lib/pkgconfig
+		cp -a ${TMPDIR}/socks-2.3.9.x/*pc $(DESTDIR)/$(PREFIX)/lib/pkgconfig
 		rm -f $(DESTDIR)/$(PREFIX)/lib/lib$(NAME).so
 		rm -f $(DESTDIR)/$(PREFIX)/lib/lib$(NAME).so.$(MAJOR)
 		ln -s $(DESTDIR)/$(PREFIX)/lib/lib$(NAME).so.$(MAJOR).$(MINOR) $(DESTDIR)/$(PREFIX)/lib/lib$(NAME).so

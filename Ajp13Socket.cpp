@@ -4,7 +4,7 @@
  **	\author grymse@alhem.net
 **/
 /*
-Copyright (C) 2007-2010  Anders Hedstrom
+Copyright (C) 2007-2011  Anders Hedstrom
 
 This library is made available under the terms of the GNU GPL, with
 the additional exemption that compiling, linking, and/or using OpenSSL 
@@ -50,6 +50,7 @@ namespace SOCKETS_NAMESPACE {
 // --------------------------------------------------------------------------------------
 Ajp13Socket::Ajp13Socket(ISocketHandler& h) : AjpBaseSocket(h)
 , m_body_size_left(0)
+, m_b_reused(false)
 {
 }
 
@@ -152,25 +153,23 @@ void Ajp13Socket::ReceiveForwardRequest( const char *buf, size_t sz )
 	for (int i = 0; i < num_headers; i++)
 	{
 		std::string key;
-		switch ( (unsigned char)buf[ptr]) // 0xa0
+		if ( (unsigned char)buf[ptr] == 0xa0)
 		{
-		case 0xa0:
+			unsigned short x = (unsigned short)get_integer(buf, ptr);
+			std::map<int, std::string>::const_iterator it;
+			if ( (it = Init.Header.find(x)) != Init.Header.end())
 			{
-				unsigned short x = (unsigned short)get_integer(buf, ptr);
-				std::map<int, std::string>::const_iterator it;
-				if ( (it = Init.Header.find(x)) != Init.Header.end())
-				{
-					key = it -> second;
-				}
-				else
-				{
-DEB(					fprintf(stderr, "Unknown header key value: %x\n", x);)
-					SetCloseAndDelete();
-				}
+				key = it -> second;
 			}
-			break;
-
-		default: // string
+			else
+			{
+DEB(				fprintf(stderr, "Unknown header key value: %x\n", x);)
+				SetCloseAndDelete();
+				break; // don't attempt to parse more headers
+			}
+		}
+		else
+		{
 			key = get_string(buf, ptr);
 		}
 		if (Utility::ToLower(key) == "cookie" || Utility::ToLower(key) == "cookie2")
@@ -183,6 +182,7 @@ DEB(					fprintf(stderr, "Unknown header key value: %x\n", x);)
 	m_body_size_left = m_req.ContentLength();
 
 	// Get Attributes
+	bool ok = true;
 	while ( (unsigned char)buf[ptr] != 0xff)
 	{
 		std::string key;
@@ -203,10 +203,16 @@ DEB(					fprintf(stderr, "Unknown header key value: %x\n", x);)
 				{
 DEB(					fprintf(stderr, "Unknown attribute key: 0x%02x\n", buf[ptr]);)
 					SetCloseAndDelete();
+					ok = false;
 				}
 			}
 		}
-		m_req.SetAttribute(key, get_string(buf, ptr));
+		if (!ok)
+			break;
+		if (code == 11)
+			m_req.SetAttribute(key, get_integer(buf, ptr));
+		else
+			m_req.SetAttribute(key, get_string(buf, ptr));
 	} // while
 
 	// execute at once if no body data
@@ -237,6 +243,20 @@ void Ajp13Socket::ReceivePing( const char *buf, size_t sz )
 // --------------------------------------------------------------------------------------
 void Ajp13Socket::ReceiveCPing( const char *buf, size_t sz )
 {
+       char msg[5]; 
+       msg[0] = 'A';
+       msg[1] = 'B';
+
+       int ptr = 4;
+       put_byte(msg, ptr, 0x09); // send CPong Reply
+
+       short len = htons( ptr - 4 );
+       memcpy( msg + 2, &len, 2 );
+
+       SendBuf( msg, ptr );
+
+       if (m_b_reused)
+               reset();
 }
 
 
@@ -247,13 +267,13 @@ void Ajp13Socket::Execute()
 	m_req.ParseBody();
 
 	// prepare page
-	OnExec( m_req );
+	IHttpServer_OnExec( m_req );
 
 }
 
 
 // --------------------------------------------------------------------------------------
-void Ajp13Socket::Respond(const HttpResponse& res)
+void Ajp13Socket::IHttpServer_Respond(const HttpResponse& res)
 {
 	char msg[8192];
 	msg[0] = 'A';
@@ -336,6 +356,7 @@ void Ajp13Socket::OnTransferLimit()
 		put_byte(msg, ptr, 0x03); // send body chunk
 		put_integer(msg, ptr, (short)n);
 		ptr += (int)n;
+		put_byte(msg, ptr, 0); // chunk terminator
 
 		short len = htons( ptr - 4 );
 		memcpy( msg + 2, &len, 2 );
@@ -355,7 +376,7 @@ void Ajp13Socket::OnTransferLimit()
 		// End Response
 		int ptr = 4;
 		put_byte(msg, ptr, 0x05); // end response
-		put_boolean(msg, ptr, false); // reuse
+		put_boolean(msg, ptr, m_b_reused); // reuse
 		/*
 			don't reuse
 			- but with m_req.Reset() and m_res.Reset() it should be possible
@@ -369,8 +390,22 @@ void Ajp13Socket::OnTransferLimit()
 
 		SetTransferLimit(0);
 		m_res.GetFile().fclose();
-		OnResponseComplete();
+		IHttpServer_OnResponseComplete();
+		if (m_b_reused)
+		{
+			Reset();
+		}
 	}
+}
+
+
+// --------------------------------------------------------------------------------------
+void Ajp13Socket::Reset()
+{
+	reset();
+	m_body_size_left = 0;
+	m_req.Reset();
+	m_res.Reset();
 }
 
 
@@ -404,6 +439,20 @@ DEB(		fprintf(stderr, "Unknown packet type: 0x%02x\n", *buf);)
 		SetCloseAndDelete();
 	}
 
+}
+
+
+// --------------------------------------------------------------------------------------
+void Ajp13Socket::SetReused(bool x)
+{
+	m_b_reused = x;
+}
+
+
+// --------------------------------------------------------------------------------------
+bool Ajp13Socket::IsReused()
+{
+	return m_b_reused;
 }
 
 

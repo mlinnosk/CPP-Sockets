@@ -1,9 +1,9 @@
-/** \file IEventHandler.h
- **	\date  2005-12-07
+/** \file IModel.h
+ **	\date  2011-07-17
  **	\author grymse@alhem.net
 **/
 /*
-Copyright (C) 2005-2011  Anders Hedstrom
+Copyright (C) 2011-  Anders Hedstrom
 
 This library is made available under the terms of the GNU GPL, with
 the additional exemption that compiling, linking, and/or using OpenSSL 
@@ -29,8 +29,8 @@ You should have received a copy of the GNU General Public License
 along with this program; if not, write to the Free Software
 Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 */
-#ifndef _SOCKETS_IEventHandler_H
-#define _SOCKETS_IEventHandler_H
+#ifndef _SOCKETS_IModel_H
+#define _SOCKETS_IModel_H
 
 #include "sockets-config.h"
 
@@ -38,40 +38,22 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 namespace SOCKETS_NAMESPACE {
 #endif
 
+class Json;
 
-class IEventOwner;
-
-/** Timer event handler pure virtual base class.
-	\ingroup timer */
-class IEventHandler
+/** IModel interface.
+	\ingroup tools */
+class IModel
 {
 public:
-	virtual ~IEventHandler() {}
+	virtual ~IModel() {}
 
-	/** Return time left until next event.
-		\param tv Time struct that will be filled by method
-		\return true if time is set for next event */
-	virtual bool GetTimeUntilNextEvent(struct timeval *) = 0;
-	/** Will fire events whose time has come. */
-	virtual void CheckEvents() = 0;
-	/** Schedule event for an owner.
-		\param from Event owner
-		\param sec Seconds until event
-		\param usec Microseconds until event */
-	virtual long AddEvent(IEventOwner *,long sec,long usec) = 0;
-	/** Clear all events for a specific owner. */
-	virtual void ClearEvents(IEventOwner *) = 0;
-	/** Remove one specific event for an event owner. */
-	virtual void RemoveEvent(IEventOwner *,long) = 0;
-
+	virtual void IModel_ToJson(Json& json) const = 0;
+	virtual void IModel_FromJson(const Json& json) = 0;
 };
-
-
 
 
 #ifdef SOCKETS_NAMESPACE
 }
 #endif
-
-#endif // _SOCKETS_IEventHandler_H
+#endif // _SOCKETS_IModel_H
 

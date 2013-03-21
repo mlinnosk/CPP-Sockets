@@ -4,7 +4,7 @@
  **	\author grymse@alhem.net
 **/
 /*
-Copyright (C) 2007-2010 Anders Hedstrom
+Copyright (C) 2007-2011 Anders Hedstrom
 
 This library is made available under the terms of the GNU GPL, with
 the additional exemption that compiling, linking, and/or using OpenSSL 
@@ -55,9 +55,12 @@ public:
 	void OnPacket( const char *buf, size_t sz );
 
 	// implements IHttpServer::Respond
-	void Respond(const HttpResponse& res);
+	void IHttpServer_Respond(const HttpResponse& res);
 
 	void OnTransferLimit();
+
+	void SetReused(bool x = true);
+	bool IsReused();
 
 private:
 	void ReceiveBody( const char *buf, size_t sz );
@@ -66,10 +69,12 @@ private:
 	void ReceivePing( const char *buf, size_t sz );
 	void ReceiveCPing( const char *buf, size_t sz );
 	void Execute();
+	void Reset();
 	//
 	size_t m_body_size_left;
 	HttpRequest m_req;
 	HttpResponse m_res;
+	bool m_b_reused;
 };
 
 

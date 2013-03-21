@@ -3,7 +3,7 @@
  **	\author grymse@alhem.net
 **/
 /*
-Copyright (C) 2004-2010  Anders Hedstrom
+Copyright (C) 2004-2011  Anders Hedstrom
 
 This library is made available under the terms of the GNU GPL, with
 the additional exemption that compiling, linking, and/or using OpenSSL 
@@ -36,6 +36,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #endif
 #include <stdlib.h>
 #include <errno.h>
+#include <stdio.h>
 
 #include "SocketHandler.h"
 #include "UdpSocket.h"
@@ -172,7 +173,7 @@ SocketHandler::SocketHandler(IMutex& mutex, ISocketHandler& parent, StdLog *p)
 
 SocketHandler::~SocketHandler()
 {
-	for (std::list<SocketHandlerThread *>::iterator it = m_threads.begin(); it != m_threads.end(); it++)
+	for (std::list<SocketHandlerThread *>::iterator it = m_threads.begin(); it != m_threads.end(); ++it)
 	{
 		SocketHandlerThread *p = *it;
 		p -> Stop();
@@ -265,7 +266,7 @@ ISocketHandler& SocketHandler::GetRandomHandler()
 		throw Exception("SocketHandler is not multithreaded");
 	size_t min_count = 99999;
 	SocketHandlerThread *match = NULL;
-	for (std::list<SocketHandlerThread *>::iterator it = m_threads.begin(); it != m_threads.end(); it++)
+	for (std::list<SocketHandlerThread *>::iterator it = m_threads.begin(); it != m_threads.end(); ++it)
 	{
 		SocketHandlerThread *thr = *it;
 		ISocketHandler& h = thr -> Handler();
@@ -795,7 +796,10 @@ void SocketHandler::RebuildFdset()
 			{
 				// %! bad fd, remove
 				LogError(p, "Select", (int)s, "Bad fd in fd_set (2)", LOG_LEVEL_ERROR);
-				DeleteSocket(p);
+				if (Valid(p) && Valid(p -> UniqueIdentifier()))
+				{
+					DeleteSocket(p);
+				}
 			}
 			else
 			{
@@ -879,6 +883,28 @@ DEB(		fprintf(stderr, "Trying to add fd %d,  m_add.size() %d\n", (int)s, (int)m_
 		}
 		else
 		{
+			m_b_check_callonconnect |= p -> CallOnConnect();
+			m_b_check_detach |= p -> IsDetach();
+			m_b_check_timeout |= p -> CheckTimeout();
+			m_b_check_retry |= p -> RetryClientConnect();
+/*
+			if (p -> CallOnConnect())
+			{
+				m_b_check_callonconnect = true;
+			}
+			if (p -> IsDetach())
+			{
+				m_b_check_detach = true;
+			}
+			if (p -> CheckTimeout())
+			{
+				m_b_check_timeout = true;
+			}
+			if (p -> RetryClientConnect())
+			{
+				m_b_check_retry = true;
+			}
+*/
 			StreamSocket *scp = dynamic_cast<StreamSocket *>(p);
 			if (scp && scp -> Connecting()) // 'Open' called before adding socket
 			{
@@ -914,7 +940,7 @@ void SocketHandler::CheckErasedSockets()
 	{
 		std::list<socketuid_t>::iterator it = m_fds_erase.begin();
 		socketuid_t uid = *it;
-		for (socket_m::iterator it = m_sockets.begin(); it != m_sockets.end(); it++)
+		for (socket_m::iterator it = m_sockets.begin(); it != m_sockets.end(); ++it)
 		{
 			Socket *p = it -> second;
 			if (p -> UniqueIdentifier() == uid)
@@ -945,7 +971,7 @@ void SocketHandler::CheckErasedSockets()
 	if (check_max_fd)
 	{
 		m_maxsock = 0;
-		for (socket_m::iterator it = m_sockets.begin(); it != m_sockets.end(); it++)
+		for (socket_m::iterator it = m_sockets.begin(); it != m_sockets.end(); ++it)
 		{
 			SOCKET s = it -> first;
 			m_maxsock = s > m_maxsock ? s : m_maxsock;
@@ -957,12 +983,11 @@ void SocketHandler::CheckErasedSockets()
 void SocketHandler::CheckCallOnConnect()
 {
 	m_b_check_callonconnect = false;
-	for (socket_m::iterator it = m_sockets.begin(); it != m_sockets.end(); it++)
+	for (socket_m::iterator it = m_sockets.begin(); it != m_sockets.end(); ++it)
 	{
 		Socket *p = it -> second;
-		if (p -> CallOnConnect())
+		if (Valid(p) && Valid(p -> UniqueIdentifier()) && p -> CallOnConnect())
 		{
-			TcpSocket *tcp = dynamic_cast<TcpSocket *>(p);
 			p -> SetConnected(); // moved here from inside if (tcp) check below
 #ifdef HAVE_OPENSSL
 			if (p -> IsSSL()) // SSL Enabled socket
@@ -975,6 +1000,7 @@ void SocketHandler::CheckCallOnConnect()
 			else
 #endif
 			{
+				TcpSocket *tcp = dynamic_cast<TcpSocket *>(p);
 				if (tcp)
 				{
 					if (tcp -> GetOutputLength())
@@ -1002,19 +1028,21 @@ void SocketHandler::CheckCallOnConnect()
 void SocketHandler::CheckDetach()
 {
 	m_b_check_detach = false;
-	for (socket_m::iterator it = m_sockets.begin(); it != m_sockets.end(); it++)
+	for (socket_m::iterator it = m_sockets.begin(); it != m_sockets.end(); ++it)
 	{
 		Socket *p = it -> second;
 		if (p -> IsDetach())
 		{
 			ISocketHandler_Del(p);
+			m_sockets.erase(it); // we don't want this around anymore
 			// After DetachSocket(), all calls to Handler() will return a reference
 			// to the new slave SocketHandler running in the new thread.
 			p -> DetachSocket();
 			// Adding the file descriptor to m_fds_erase will now also remove the
 			// socket from the detach queue - tnx knightmad
-			m_fds_erase.push_back(p -> UniqueIdentifier());
+//			m_fds_erase.push_back(p -> UniqueIdentifier());
 			m_b_check_detach = true;
+			break; // 'it' is invalid
 		}
 	}
 }
@@ -1024,10 +1052,10 @@ void SocketHandler::CheckDetach()
 void SocketHandler::CheckTimeout(time_t tnow)
 {
 	m_b_check_timeout = false;
-	for (socket_m::iterator it = m_sockets.begin(); it != m_sockets.end(); it++)
+	for (socket_m::iterator it = m_sockets.begin(); it != m_sockets.end(); ++it)
 	{
 		Socket *p = it -> second;
-		if (p -> CheckTimeout())
+		if (Valid(p) && Valid(p -> UniqueIdentifier()) && p -> CheckTimeout())
 		{
 			if (p -> Timeout(tnow))
 			{
@@ -1053,10 +1081,10 @@ void SocketHandler::CheckTimeout(time_t tnow)
 void SocketHandler::CheckRetry()
 {
 	m_b_check_retry = false;
-	for (socket_m::iterator it = m_sockets.begin(); it != m_sockets.end(); it++)
+	for (socket_m::iterator it = m_sockets.begin(); it != m_sockets.end(); ++it)
 	{
 		Socket *p = it -> second;
-		if (p -> RetryClientConnect())
+		if (Valid(p) && Valid(p -> UniqueIdentifier()) && p -> RetryClientConnect())
 		{
 			TcpSocket *tcp = dynamic_cast<TcpSocket *>(p);
 			tcp -> SetRetryClientConnect(false);
@@ -1082,10 +1110,10 @@ DEB(					fprintf(stderr, "Close() before retry client connect\n");)
 void SocketHandler::CheckClose()
 {
 	m_b_check_close = false;
-	for (socket_m::iterator it = m_sockets.begin(); it != m_sockets.end(); it++)
+	for (socket_m::iterator it = m_sockets.begin(); it != m_sockets.end(); ++it)
 	{
 		Socket *p = it -> second;
-		if (p -> CloseAndDelete() )
+		if (Valid(p) && Valid(p -> UniqueIdentifier()) && p -> CloseAndDelete() )
 		{
 			TcpSocket *tcp = dynamic_cast<TcpSocket *>(p);
 #ifdef ENABLE_RECONNECT
@@ -1275,7 +1303,7 @@ printf("]\n");
 	else
 	if (n > 0)
 	{
-		for (socket_m::iterator it = m_sockets.begin(); it != m_sockets.end(); it++)
+		for (socket_m::iterator it = m_sockets.begin(); it != m_sockets.end(); ++it)
 		{
 			SOCKET i = it -> first;
 			Socket *p = it -> second;

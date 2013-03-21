@@ -3,7 +3,7 @@
  **	\author grymse@alhem.net
 **/
 /*
-Copyright (C) 2004-2010  Anders Hedstrom
+Copyright (C) 2004-2011  Anders Hedstrom
 
 This library is made available under the terms of the GNU GPL, with
 the additional exemption that compiling, linking, and/or using OpenSSL 
@@ -47,6 +47,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <openssl/err.h>
 #endif
 #include <map>
+#include <stdio.h>
 
 #include "TcpSocket.h"
 #include "Utility.h"
@@ -1284,12 +1285,12 @@ void TcpSocket::InitializeContext(const std::string& context, const SSL_METHOD *
 {
 	static Mutex mutex;
 	Lock lock(mutex);
-    m_ssl_ctx_name = context;
-    /* Create our context*/
+	m_ssl_ctx_name = context;
+	/* Create our context*/
 	SSL_METHOD *meth = const_cast<SSL_METHOD *>(meth_in) ?
-        const_cast<SSL_METHOD *>(meth_in) : const_cast<SSL_METHOD *>(SSLv3_method());
-    m_ssl_ctx = SSL_CTX_new(meth);
-    SSL_CTX_set_mode(m_ssl_ctx, SSL_MODE_AUTO_RETRY|SSL_MODE_ENABLE_PARTIAL_WRITE);
+		const_cast<SSL_METHOD *>(meth_in) : const_cast<SSL_METHOD *>(SSLv3_method());
+	m_ssl_ctx = SSL_CTX_new(meth);
+	SSL_CTX_set_mode(m_ssl_ctx, SSL_MODE_AUTO_RETRY|SSL_MODE_ENABLE_PARTIAL_WRITE);
 }
 
 
@@ -1302,23 +1303,23 @@ void TcpSocket::InitializeContext(const std::string& context,const std::string& 
 void TcpSocket::InitializeContext(const std::string& context,const std::string& certfile,const std::string& keyfile,const std::string& password,const SSL_METHOD *meth_in)
 {
 	Lock lock(m_server_ssl_mutex);
-    /* Create our context*/
-    const SSL_METHOD *meth = meth_in ? meth_in : SSLv3_method();
-    m_ssl_ctx = SSL_CTX_new(const_cast<SSL_METHOD*>(meth));
-    SSL_CTX_set_mode(m_ssl_ctx, SSL_MODE_AUTO_RETRY|SSL_MODE_ENABLE_PARTIAL_WRITE);
+	/* Create our context*/
+	const SSL_METHOD *meth = meth_in ? meth_in : SSLv3_method();
+	m_ssl_ctx = SSL_CTX_new(const_cast<SSL_METHOD*>(meth));
+	SSL_CTX_set_mode(m_ssl_ctx, SSL_MODE_AUTO_RETRY|SSL_MODE_ENABLE_PARTIAL_WRITE);
 	// session id
 	if (!context.empty())
-     {
-         m_ssl_ctx_name = context;
-     }
-     else
-     {
-         m_ssl_ctx_name = "--empty--";
-     }
-     SSL_CTX_set_session_id_context(
-         m_ssl_ctx,
-         (const unsigned char *)m_ssl_ctx_name.c_str(),
-         (unsigned int)m_ssl_ctx_name.size());
+	{
+		m_ssl_ctx_name = context;
+	}
+	else
+	{
+		m_ssl_ctx_name = "--empty--";
+	}
+	SSL_CTX_set_session_id_context(
+		m_ssl_ctx,
+		(const unsigned char *)m_ssl_ctx_name.c_str(),
+		(unsigned int)m_ssl_ctx_name.size());
 
 	/* Load our keys and certificates*/
 	if (!(SSL_CTX_use_certificate_file(m_ssl_ctx, certfile.c_str(), SSL_FILETYPE_PEM)))
@@ -1364,7 +1365,7 @@ int TcpSocket::Close()
 	}
 	int n;
 	SetNonblocking(true);
-    
+
 #ifdef HAVE_OPENSSL
 	sslShutdown();
 #endif

@@ -1,5 +1,6 @@
 # platforms:
 #  linux-x86-32
+#  linux-x86-64
 #  win32-cygwin
 #  solaris9-sparc-64
 #  macosx
@@ -40,6 +41,9 @@ DESTDIR :=
 #INCLUDE =	-I/usr/include/libxml2
 INCLUDE =
 
+# Add for libxml2 if not in above location
+#CFLAGS +=	`xml2-config --cflags`
+
 # CXX, CFLAGS, LIBS, LDFLAGS, LDFLAGSSO
 include		Makefile.Defines.$(PLATFORM)
 
@@ -50,7 +54,6 @@ include		Makefile.Defines.$(PLATFORM)
 
 # Enable insane amounts of debug output to stdout/stderr:
 #CFLAGS +=	-D_DEBUG
-
 
 CPPFLAGS =	$(CFLAGS) 
 
@@ -116,7 +119,6 @@ install:	all
 install_shared:	install shared
 		@mkdir -p $(DESTDIR)/$(PREFIX)/lib/pkgconfig
 		cp $(SHAREDLIBNAME) $(DESTDIR)/$(PREFIX)/lib
-		# cp -a pkgconfig/*pc $(DESTDIR)/$(PREFIX)/lib/pkgconfig
 		cp -a ${TMPDIR}/socks-2.3.9.x/*pc $(DESTDIR)/$(PREFIX)/lib/pkgconfig
 		rm -f $(DESTDIR)/$(PREFIX)/lib/lib$(NAME).so
 		rm -f $(DESTDIR)/$(PREFIX)/lib/lib$(NAME).so.$(MAJOR)

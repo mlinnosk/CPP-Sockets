@@ -16,7 +16,7 @@ LDFLAGS +=	-rdynamic
 PROGS =		events resolve sockets_test base64 semtest \
 		echoserver stressclient http httpd retry resume \
 		http_post x copy crlf https sloppy_http chunked \
-		threadstress listener httpd_test scanr
+		threadstress listener httpd_test scanr detach
 
 all:		$(PROGS)
 
@@ -84,6 +84,9 @@ scanr:		scanr.o ../libSockets.a
 		$(CXX) -o $@ $^ $(LIBS) $(LDFLAGS)
 
 httpd_test:	httpd_test.o ../libSockets.a
+		$(CXX) -o $@ $^ $(LIBS) $(LDFLAGS)
+
+detach:		detach.o ../libSockets.a
 		$(CXX) -o $@ $^ $(LIBS) $(LDFLAGS)
 
 clean:

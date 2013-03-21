@@ -4,7 +4,7 @@
  **/
 
 /*
-Copyright (C) 1999-2010  Anders Hedstrom
+Copyright (C) 1999-2011  Anders Hedstrom
 
 This library is made available under the terms of the GNU GPL, with
 the additional exemption that compiling, linking, and/or using OpenSSL 
@@ -90,6 +90,12 @@ public:
 	HttpdForm(const std::string& query_string,size_t length);
 	~HttpdForm();
 
+	/**
+	 * Parses the following content-types
+		"multipart/form-data"
+		"x-www-form-urlencoded"
+	 * Any other content-type is left alone and nothing is read from input stream
+	*/
 	void ParseFormData(IFile *, const std::string&, size_t);
 	void ParseQueryString(const std::string& query_string, size_t length);
 

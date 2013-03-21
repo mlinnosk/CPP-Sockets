@@ -4,7 +4,7 @@
  **	\author grymse@alhem.net
 **/
 /*
-Copyright (C) 2007-2010  Anders Hedstrom
+Copyright (C) 2007-2011  Anders Hedstrom
 
 This library is made available under the terms of the GNU GPL, with
 the additional exemption that compiling, linking, and/or using OpenSSL 
@@ -50,13 +50,13 @@ public:
 
 	/** Complete request has been received and parsed. Send response
 	    using the Respond() method. */
-	virtual void OnExec(const HttpRequest& req) = 0;
+	virtual void IHttpServer_OnExec(const HttpRequest& req) = 0;
 
 	/** Send response. */
-	virtual void Respond(const HttpResponse& res) = 0;
+	virtual void IHttpServer_Respond(const HttpResponse& res) = 0;
 
 	/** Called when the body part of the response has been sent. */
-	virtual void OnResponseComplete() = 0;
+	virtual void IHttpServer_OnResponseComplete() = 0;
 };
 
 

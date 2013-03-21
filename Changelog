@@ -1,5 +1,11 @@
 diff for next release always available @ http://www.alhem.net/Sockets/latest_diff.html
 
+2.3.9.7
+--------
+Faster detach, now also works from OnAccept.
+Reclaim memory when using pthread attributes.
+A detach thread now exits normally.
+
 2.3.9.6
 --------
 Fix typo i ListenSocket.h. Json class updated. Ajp connector class updated
@@ -9,7 +15,8 @@ parse method if not any of the required content types. Validate socket ptr
 before deleteing in sockethandler. Define int64_t on _win32 platform. Update
 port number in udpsocket after call to Bind method. Preserve m_b_check*
 flags in sockethandler during add phase. Timing problem during detach
-process fixed.
+process fixed. Added more options to Sockets-config executable, it can now
+be used to directly modify Makefile and sockets-config.h.
 
 2.3.9.5
 --------

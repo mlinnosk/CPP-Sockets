@@ -107,6 +107,7 @@ protected:
 	unsigned m_dwThreadId;
 #else
 	pthread_t m_thread;
+	pthread_attr_t m_attr;
 #endif
 
 private:

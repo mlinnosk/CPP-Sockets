@@ -4,6 +4,8 @@
 #include <Sockets/Utility.h>
 #include <iostream>
 
+  int count = 0;
+
 class EchoSocket : public TcpSocket
 {
 public:
@@ -12,7 +14,7 @@ public:
   }
 
   void OnAccept() {
-//    std::cout << "OnAccept #" << Utility::ThreadID() << std::endl;
+    std::cout << "OnAccept ThreadId#" << Utility::ThreadID() << ", fd " << GetSocket() << std::endl;
     if (!Detach())
       std::cerr << "Detach() failed" << std::endl;
 /*
@@ -23,13 +25,17 @@ public:
   }
 
   void OnDetached() {
-//    std::cout << "OnDetached" << std::endl;
+    std::cout << "OnDetached" << std::endl;
+    ++count;
   }
 
   void OnLine(const std::string& line) {
 //    std::cout << "OnLine #" << Utility::ThreadID() << std::endl;
-    Send(line + "\n");
-    SetCloseAndDelete();
+    Send(line + ", count: " + Utility::l2string(count) + "\n");
+    if (!line.empty())
+    {
+      SetCloseAndDelete();
+    }
   }
 
   void OnDelete() {

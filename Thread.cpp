@@ -57,16 +57,13 @@ Thread::Thread(bool release)
 //	m_thread = ::CreateThread(NULL, 0, StartThread, this, 0, &m_dwThreadId);
 	m_thread = (HANDLE)_beginthreadex(NULL, 0, &StartThread, this, 0, &m_dwThreadId);
 #else
-	pthread_attr_t attr;
-
-	pthread_attr_init(&attr);
-	pthread_attr_setdetachstate(&attr,PTHREAD_CREATE_DETACHED);
-	if (pthread_create(&m_thread,&attr, StartThread,this) == -1)
+	pthread_attr_init(&m_attr);
+	pthread_attr_setdetachstate(&m_attr,PTHREAD_CREATE_DETACHED);
+	if (pthread_create(&m_thread,&m_attr, StartThread,this) == -1)
 	{
 		perror("Thread: create failed");
 		SetRunning(false);
 	}
-//	pthread_attr_destroy(&attr);
 #endif
 	m_release = release;
 	if (release)
@@ -90,6 +87,8 @@ Thread::~Thread()
 #ifdef _WIN32
 	if (m_thread)
 		::CloseHandle(m_thread);
+#else
+	pthread_attr_destroy(&m_attr);
 #endif
 }
 

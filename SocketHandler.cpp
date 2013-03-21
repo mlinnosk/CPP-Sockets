@@ -1045,6 +1045,11 @@ void SocketHandler::CheckDetach()
 			break; // 'it' is invalid
 		}
 	}
+	for (std::list<Socket *>::iterator it = m_add.begin(); it != m_add.end() && !m_b_check_detach; ++it)
+	{
+		Socket *p = *it;
+		m_b_check_detach |= p -> IsDetach();
+	}
 }
 #endif
 
@@ -1363,7 +1368,7 @@ int SocketHandler::Select()
 		m_b_check_retry ||
 		m_b_check_close)
 	{
-		return Select(0, 200000);
+		return Select(0, m_b_check_detach ? 10000 : 200000);
 	}
 	return Select(NULL);
 }

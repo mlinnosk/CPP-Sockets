@@ -31,7 +31,6 @@ OBJS =		\
 		IEventOwner.o \
 		Ipv4Address.o \
 		Ipv6Address.o \
-		Json.o \
 		Lock.o \
 		MemFile.o \
 		Mutex.o \

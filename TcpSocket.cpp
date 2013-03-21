@@ -71,8 +71,6 @@ namespace SOCKETS_NAMESPACE {
 #ifdef HAVE_OPENSSL
 SSLInitializer TcpSocket::m_ssl_init;
 Mutex TcpSocket::m_server_ssl_mutex;
-std::map<std::string, SSL_CTX *> TcpSocket::m_client_contexts;
-std::map<std::string, SSL_CTX *> TcpSocket::m_server_contexts;
 #endif
 
 
@@ -99,6 +97,8 @@ TcpSocket::TcpSocket(ISocketHandler& h) : StreamSocket(h)
 ,m_ssl_ctx(NULL)
 ,m_ssl(NULL)
 ,m_sbio(NULL)
+,m_password()
+,m_ssl_ctx_name()
 #endif
 #ifdef ENABLE_SOCKS4
 ,m_socks4_state(0)
@@ -139,6 +139,8 @@ TcpSocket::TcpSocket(ISocketHandler& h,size_t isize,size_t osize) : StreamSocket
 ,m_ssl_ctx(NULL)
 ,m_ssl(NULL)
 ,m_sbio(NULL)
+,m_password()
+,m_ssl_ctx_name()
 #endif
 #ifdef ENABLE_SOCKS4
 ,m_socks4_state(0)
@@ -175,6 +177,11 @@ TcpSocket::~TcpSocket()
 	{
 		SSL_free(m_ssl);
 	}
+    if (m_ssl_ctx)
+    {
+        SSL_CTX_free(m_ssl_ctx);
+        m_ssl_ctx = NULL;
+    }
 #endif
 }
 
@@ -1277,76 +1284,41 @@ void TcpSocket::InitializeContext(const std::string& context, const SSL_METHOD *
 {
 	static Mutex mutex;
 	Lock lock(mutex);
-	/* Create our context*/
-	if (m_client_contexts.find(context) == m_client_contexts.end())
-	{
-		SSL_METHOD *meth = const_cast<SSL_METHOD *>(meth_in) ?
-			const_cast<SSL_METHOD *>(meth_in) : const_cast<SSL_METHOD *>(SSLv3_method());
-		m_ssl_ctx = m_client_contexts[context] = SSL_CTX_new(meth);
-		SSL_CTX_set_mode(m_ssl_ctx, SSL_MODE_AUTO_RETRY|SSL_MODE_ENABLE_PARTIAL_WRITE);
-	}
-	else
-	{
-		m_ssl_ctx = m_client_contexts[context];
-	}
+    m_ssl_ctx_name = context;
+    /* Create our context*/
+	SSL_METHOD *meth = const_cast<SSL_METHOD *>(meth_in) ?
+        const_cast<SSL_METHOD *>(meth_in) : const_cast<SSL_METHOD *>(SSLv3_method());
+    m_ssl_ctx = SSL_CTX_new(meth);
+    SSL_CTX_set_mode(m_ssl_ctx, SSL_MODE_AUTO_RETRY|SSL_MODE_ENABLE_PARTIAL_WRITE);
 }
 
 
 void TcpSocket::InitializeContext(const std::string& context,const std::string& keyfile,const std::string& password,const SSL_METHOD *meth_in)
 {
-	Lock lock(m_server_ssl_mutex);
-	/* Create our context*/
-	if (m_server_contexts.find(context) == m_server_contexts.end())
-	{
-		SSL_METHOD *meth = meth_in ? const_cast<SSL_METHOD *>(meth_in) : SSLv3_method();
-		m_ssl_ctx = m_server_contexts[context] = SSL_CTX_new(meth);
-		SSL_CTX_set_mode(m_ssl_ctx, SSL_MODE_AUTO_RETRY|SSL_MODE_ENABLE_PARTIAL_WRITE);
-		// session id
-		if (context.size())
-			SSL_CTX_set_session_id_context(m_ssl_ctx, (const unsigned char *)context.c_str(), (unsigned int)context.size());
-		else
-			SSL_CTX_set_session_id_context(m_ssl_ctx, (const unsigned char *)"--empty--", 9);
-	}
-	else
-	{
-		m_ssl_ctx = m_server_contexts[context];
-	}
-
-	/* Load our keys and certificates*/
-	if (!(SSL_CTX_use_certificate_file(m_ssl_ctx, keyfile.c_str(), SSL_FILETYPE_PEM)))
-	{
-		Handler().LogError(this, "TcpSocket InitializeContext", 0, "Couldn't read certificate file " + keyfile, LOG_LEVEL_FATAL);
-	}
-
-	m_password = password;
-	SSL_CTX_set_default_passwd_cb(m_ssl_ctx, SSL_password_cb);
-	SSL_CTX_set_default_passwd_cb_userdata(m_ssl_ctx, this);
-	if (!(SSL_CTX_use_PrivateKey_file(m_ssl_ctx, keyfile.c_str(), SSL_FILETYPE_PEM)))
-	{
-		Handler().LogError(this, "TcpSocket InitializeContext", 0, "Couldn't read private key file " + keyfile, LOG_LEVEL_FATAL);
-	}
+    InitializeContext(context, keyfile, keyfile, password, meth_in);
 }
 
 
 void TcpSocket::InitializeContext(const std::string& context,const std::string& certfile,const std::string& keyfile,const std::string& password,const SSL_METHOD *meth_in)
 {
 	Lock lock(m_server_ssl_mutex);
-	/* Create our context*/
-	if (m_server_contexts.find(context) == m_server_contexts.end())
-	{
-		SSL_METHOD *meth = meth_in ? const_cast<SSL_METHOD *>(meth_in) : SSLv3_method();
-		m_ssl_ctx = m_server_contexts[context] = SSL_CTX_new(meth);
-		SSL_CTX_set_mode(m_ssl_ctx, SSL_MODE_AUTO_RETRY|SSL_MODE_ENABLE_PARTIAL_WRITE);
-		// session id
-		if (context.size())
-			SSL_CTX_set_session_id_context(m_ssl_ctx, (const unsigned char *)context.c_str(), (unsigned int)context.size());
-		else
-			SSL_CTX_set_session_id_context(m_ssl_ctx, (const unsigned char *)"--empty--", 9);
-	}
-	else
-	{
-		m_ssl_ctx = m_server_contexts[context];
-	}
+    /* Create our context*/
+    const SSL_METHOD *meth = meth_in ? meth_in : SSLv3_method();
+    m_ssl_ctx = SSL_CTX_new(const_cast<SSL_METHOD*>(meth));
+    SSL_CTX_set_mode(m_ssl_ctx, SSL_MODE_AUTO_RETRY|SSL_MODE_ENABLE_PARTIAL_WRITE);
+	// session id
+	if (!context.empty())
+     {
+         m_ssl_ctx_name = context;
+     }
+     else
+     {
+         m_ssl_ctx_name = "--empty--";
+     }
+     SSL_CTX_set_session_id_context(
+         m_ssl_ctx,
+         (const unsigned char *)m_ssl_ctx_name.c_str(),
+         (unsigned int)m_ssl_ctx_name.size());
 
 	/* Load our keys and certificates*/
 	if (!(SSL_CTX_use_certificate_file(m_ssl_ctx, certfile.c_str(), SSL_FILETYPE_PEM)))
@@ -1392,7 +1364,12 @@ int TcpSocket::Close()
 	}
 	int n;
 	SetNonblocking(true);
-	if (!Lost() && IsConnected() && !(GetShutdown() & SHUT_WR))
+    
+#ifdef HAVE_OPENSSL
+	sslShutdown();
+#endif
+
+    if (!Lost() && IsConnected() && !(GetShutdown() & SHUT_WR))
 	{
 		if (shutdown(GetSocket(), SHUT_WR) == -1)
 		{
@@ -1404,21 +1381,16 @@ int TcpSocket::Close()
 	char tmp[1000];
 	if (!Lost() && (n = recv(GetSocket(),tmp,1000,0)) >= 0)
 	{
-		if (n)
+        //this a normal case with SSL so don't spamm
+#ifndef HAVE_OPENSSL
+        if (n)
 		{
 			Handler().LogError(this, "read() after shutdown", n, "bytes read", LOG_LEVEL_WARNING);
 		}
-	}
-#ifdef HAVE_OPENSSL
-	if (IsSSL() && m_ssl)
-		SSL_shutdown(m_ssl);
-	if (m_ssl)
-	{
-		SSL_free(m_ssl);
-		m_ssl = NULL;
-	}
 #endif
-	return Socket::Close();
+	}
+    
+    return Socket::Close();
 }
 
 
@@ -1514,6 +1486,48 @@ bool TcpSocket::IsReconnect()
 const std::string& TcpSocket::GetPassword()
 {
 	return m_password;
+}
+
+
+void TcpSocket::sslShutdown()
+{
+    if (IsSSL() && m_ssl)
+    {
+        bool again = true;
+        do
+        {
+            const int rv = SSL_shutdown(m_ssl);
+            switch (rv)
+            {
+                case SSL_ERROR_NONE:
+                case SSL_ERROR_ZERO_RETURN:
+                {
+                    again = false;
+                }
+                break;
+                
+                case SSL_ERROR_SYSCALL:
+                case SSL_ERROR_SSL:
+                {
+                    unsigned long err = SSL_get_error(m_ssl, rv);
+                    Handler().LogError(this, "SSL_shutdown error!", err, ERR_error_string(err, NULL), LOG_LEVEL_ERROR);
+                    again = false;
+                }
+                break;
+            }
+        } while (again);
+    }
+
+    if (m_ssl)
+	{
+		SSL_free(m_ssl);
+		m_ssl = NULL;
+	}
+    if (m_ssl_ctx)
+    {
+        SSL_CTX_free(m_ssl_ctx);
+        m_ssl_ctx = NULL;
+    }
 }
 #endif
 

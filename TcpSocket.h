@@ -295,6 +295,9 @@ static	int SSL_password_cb(char *buf,int num,int rwflag,void *userdata);
 	bool SSLNegotiate();
 	/** SSL; Get ssl password. */
 	const std::string& GetPassword();
+    
+    void sslShutdown();
+    
 #endif
 
 	CircularBuffer ibuf; ///< Circular input buffer
@@ -332,9 +335,8 @@ static	SSLInitializer m_ssl_init;
 	SSL *m_ssl; ///< ssl 'socket'
 	BIO *m_sbio; ///< ssl bio
 	std::string m_password; ///< ssl password
+    std::string m_ssl_ctx_name;
 static	Mutex m_server_ssl_mutex;
-static	std::map<std::string, SSL_CTX *> m_client_contexts;
-static	std::map<std::string, SSL_CTX *> m_server_contexts;
 #endif
 
 #ifdef ENABLE_SOCKS4

@@ -1,5 +1,24 @@
 diff for next release always available @ http://www.alhem.net/Sockets/latest_diff.html
 
+next
+--------
+
+
+2.3.9.4
+--------
+File can be created using an existing FILE *. Fix bug in File using wrong
+file ptr when writing.
+Added HttpdForm constructor (FILE *) that detects cgi input using
+environment variables.
+Added HttpRequest constructor (FILE *) that can parse a cgi request.
+Added missing sockets namespace in SocketThread class files.
+Added new operator <<(int64_t) in StreamWriter. Might be ambigouos on some
+architectures.
+Fix expression evaluation in TcpSocket, causing access to null pointer.
+Fix disable of both reconnect and detach functions.
+Added Utility::bigint2string(int64_t).
+Added Json support.
+
 2.3.9.3
 --------
 Added multithread support in sockethandler. New method SetNumberOfThreads()

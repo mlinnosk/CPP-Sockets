@@ -32,7 +32,7 @@ private:
 };
 
 #ifdef SOCKETS_NAMESPACE
-}
+} // namespace SOCKETS_NAMESPACE {
 #endif
 
 #endif // ENABLE_DETACH

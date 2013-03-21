@@ -1,7 +1,7 @@
 MAJOR =		2
-MINOR =		3.9.3
+MINOR =		3.9.4
 VERSION =	$(MAJOR).$(MINOR)
-DIFF_VERSION =	2.3.9.2
+DIFF_VERSION =	2.3.9.3
 
 # Sockets
 OBJS =		\
@@ -31,6 +31,7 @@ OBJS =		\
 		IEventOwner.o \
 		Ipv4Address.o \
 		Ipv6Address.o \
+		Json.o \
 		Lock.o \
 		MemFile.o \
 		Mutex.o \

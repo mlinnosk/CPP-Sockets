@@ -47,6 +47,7 @@ class File : public IFile
 {
 public:
 	File();
+	File(FILE *);
 	/** convenience: calls fopen() */
 	File(const std::string& path, const std::string& mode);
 	~File();
@@ -75,6 +76,7 @@ private:
 	std::string m_path;
 	std::string m_mode;
 	mutable FILE *m_fil;
+	bool m_b_close;
 	mutable long m_rptr;
 	long m_wptr;
 };

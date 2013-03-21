@@ -53,6 +53,7 @@ public:
 	StreamWriter& operator<<(short);
 	StreamWriter& operator<<(int);
 	StreamWriter& operator<<(long);
+	StreamWriter& operator<<(int64_t);
 	StreamWriter& operator<<(double);
 
 private:

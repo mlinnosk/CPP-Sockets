@@ -53,9 +53,43 @@ namespace SOCKETS_NAMESPACE {
 #endif
 
 
+HttpdForm::HttpdForm(FILE *fil)
+{
+	const char *r_m = getenv("REQUEST_METHOD");
+	const char *q_s = getenv("QUERY_STRING");
+	if (r_m && !strcasecmp(r_m, "post"))
+	{
+		const char *c_t = getenv("CONTENT_TYPE");
+		const char *c_l = getenv("CONTENT_LENGTH");
+		if (c_t && c_l)
+		{
+			std::auto_ptr<IFile> p = std::auto_ptr<IFile>(new File(fil));
+			ParseFormData( p.get(), c_t, atoi(c_l) );
+		}
+	}
+	if (q_s && strlen(q_s))
+	{
+		ParseQueryString(q_s, strlen(q_s));
+	}
+}
+
 HttpdForm::HttpdForm(IFile *infil, const std::string& content_type, size_t content_length) : raw(false)
 , m_file_upload(NULL)
 , m_upload_stream(NULL)
+{
+	ParseFormData(infil, content_type, content_length);
+}
+
+// HttpdForm(buffer,l) -- request_method GET
+
+HttpdForm::HttpdForm(const std::string& buffer,size_t l) : raw(false)
+, m_file_upload(NULL)
+, m_upload_stream(NULL)
+{
+	ParseQueryString(buffer, l);
+}
+
+void HttpdForm::ParseFormData(IFile *infil, const std::string& content_type, size_t content_length)
 {
 	CGI *cgi = NULL;
 	size_t extra = 2;
@@ -396,14 +430,24 @@ HttpdForm::HttpdForm(IFile *infil, const std::string& content_type, size_t conte
 		}
 		m_cgi.push_back(cgi);
 	}
+	else // read other content up to a limit
+	if (content_length > 0 && content_length < 500000)
+	{
+		int ptr = 0;
+		int cl = (int)content_length;
+		m_content.resize(cl);
+		while (ptr < cl)
+		{
+			int remaining = cl - ptr;
+			int n = fread(&m_content[ptr], 1, remaining, stdin);
+			if (n > 0)
+				ptr += n;
+		}
+	}
 }
 
 
-// HttpdForm(buffer,l) -- request_method GET
-
-HttpdForm::HttpdForm(const std::string& buffer,size_t l) : raw(false)
-, m_file_upload(NULL)
-, m_upload_stream(NULL)
+void HttpdForm::ParseQueryString(const std::string& buffer,size_t l)
 {
 	CGI *cgi = NULL;
 	std::string slask;

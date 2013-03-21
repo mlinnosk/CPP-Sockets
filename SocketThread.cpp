@@ -3,6 +3,10 @@
 #ifdef ENABLE_DETACH
 #include "Utility.h"
 
+#ifdef SOCKETS_NAMESPACE
+namespace SOCKETS_NAMESPACE {
+#endif
+
 SocketThread::SocketThread(Socket *p)
 :Thread(false)
 ,m_socket(p)
@@ -39,5 +43,9 @@ void SocketThread::Run()
 	// so Socket will no longer delete its socket thread, instead we do this:
 	SetDeleteOnExit();
 }
+
+#ifdef SOCKETS_NAMESPACE
+} // namespace SOCKETS_NAMESPACE {
+#endif
 
 #endif // ENABLE_DETACH

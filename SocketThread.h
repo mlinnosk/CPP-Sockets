@@ -7,6 +7,10 @@
 #include "Thread.h"
 #include "SocketHandler.h"
 
+#ifdef SOCKETS_NAMESPACE
+namespace SOCKETS_NAMESPACE {
+#endif
+
 class Socket;
 
 /** Detached socket run thread. 
@@ -26,6 +30,10 @@ private:
 	SocketHandler m_h;
 	Socket *m_socket;
 };
+
+#ifdef SOCKETS_NAMESPACE
+} // namespace SOCKETS_NAMESPACE {
+#endif
 
 #endif // ENABLE_DETACH
 

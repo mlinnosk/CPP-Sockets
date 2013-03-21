@@ -62,6 +62,64 @@ HttpRequest::HttpRequest() : HttpTransaction()
 
 
 // --------------------------------------------------------------------------------------
+#ifndef _WIN32
+HttpRequest::HttpRequest(FILE *fil) : HttpTransaction()
+, m_server_port(0)
+, m_is_ssl(false)
+, m_body_file(NULL)
+, m_form(NULL)
+{
+	int i = 0;
+DEB(	std::cout << "Initialize HttpRequest from cgi...\n";)
+	while (environ[i] && *environ[i])
+	{
+		Parse pa(environ[i], "=");
+		std::string key = pa.getword();
+		std::string value = pa.getrest();
+		if (key == "REQUEST_METHOD")
+			m_method = value;
+		else
+		if (key == "SERVER_PROTOCOL")
+			m_protocol = value;
+		else
+		if (key == "PATH_INFO")
+			m_req_uri = value;
+		else
+		if (key == "REMOTE_ADDR")
+			m_remote_addr = value;
+		else
+		if (key == "REMOTE_HOST")
+			m_remote_host = value;
+		else
+		if (key == "SERVER_NAME")
+			m_server_name = value;
+		else
+		if (key == "SERVER_PORT")
+			m_server_port = atoi(value.c_str());
+		else
+		if (key.size() > 5 && key.substr(0, 5) == "HTTP_")
+		{
+			key = key.substr(5);
+			for (size_t pos = 0; pos < key.size(); pos++)
+			{
+				if (key[pos] == '_')
+					key[pos] = '-';
+				else
+				if (key[pos] >= 'A' && key[pos] <= 'Z')
+					key[pos] |= 32;
+			}
+DEB(			std::cout << " http header '" << key << "' == '" << value << "\n";)
+			SetHeader(key, value);
+		}
+		++i;
+	}
+DEB(	std::cout << " setup http form\n";)
+	m_form = std::auto_ptr<HttpdForm>(new HttpdForm(fil));
+}
+#endif
+
+
+// --------------------------------------------------------------------------------------
 HttpRequest::HttpRequest(const HttpRequest& src) : HttpTransaction(src)
 , m_method(src.m_method)
 , m_protocol(src.m_protocol)

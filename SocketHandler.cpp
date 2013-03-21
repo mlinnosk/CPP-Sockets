@@ -998,6 +998,7 @@ void SocketHandler::CheckCallOnConnect()
 }
 
 
+#ifdef ENABLE_DETACH
 void SocketHandler::CheckDetach()
 {
 	m_b_check_detach = false;
@@ -1017,6 +1018,7 @@ void SocketHandler::CheckDetach()
 		}
 	}
 }
+#endif
 
 
 void SocketHandler::CheckTimeout(time_t tnow)
@@ -1086,7 +1088,11 @@ void SocketHandler::CheckClose()
 		if (p -> CloseAndDelete() )
 		{
 			TcpSocket *tcp = dynamic_cast<TcpSocket *>(p);
+#ifdef ENABLE_RECONNECT
 			if (p -> Lost() && !(tcp && tcp -> Reconnect()))
+#else
+			if (p -> Lost())
+#endif
 			{
 				// remove instance when Lost, if not reconnect flag is set
 				DeleteSocket(p);

@@ -857,7 +857,7 @@ void TcpSocket::Buffer(const char *buf, size_t len)
 	{
 		// buf/len => pbuf/sz
 		size_t space = 0;
-		if (m_obuf_top && (space = m_obuf_top -> Space()) > 0)
+		if ((space = m_obuf_top ? m_obuf_top -> Space() : 0) > 0)
 		{
 			const char *pbuf = buf + ptr;
 			size_t sz = len - ptr;

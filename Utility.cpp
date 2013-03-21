@@ -210,6 +210,29 @@ std::string Utility::l2string(long l)
 }
 
 
+std::string Utility::bigint2string(int64_t l)
+{
+	std::string str;
+	int64_t tmp = l;
+	if (l < 0)
+	{
+		str = "-";
+		tmp = -l;
+	}
+	while (tmp)
+	{
+		uint64_t a = tmp % 10;
+		str = (char)(a + 48) + str;
+		tmp /= 10;
+	}
+	if (!str.size())
+	{
+		str = "0";
+	}
+	return str;
+}
+
+
 std::string Utility::bigint2string(uint64_t l)
 {
 	std::string str;

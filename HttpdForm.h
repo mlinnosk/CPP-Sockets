@@ -39,6 +39,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <list>
 #include <cstdio>
 #include <cstring>
+#include <vector>
 
 #ifdef SOCKETS_NAMESPACE
 namespace SOCKETS_NAMESPACE {
@@ -70,8 +71,12 @@ class HttpdForm
 	typedef std::list<CGI *> cgi_v;
 
 public:
+        /**
+         * Default constructor
+        */
+	HttpdForm(FILE *);
 	/**
-	 * Default constructor (used in POST operations).
+	 * Constructor (used in POST operations).
 	 * Input is read from stdin. Number of characters to read
 	 * can be found in the environment variable CONTENT_LENGTH.
 	*/
@@ -84,6 +89,9 @@ public:
 	*/
 	HttpdForm(const std::string& query_string,size_t length);
 	~HttpdForm();
+
+	void ParseFormData(IFile *, const std::string&, size_t);
+	void ParseQueryString(const std::string& query_string, size_t length);
 
 	void EnableRaw(bool);
 
@@ -109,6 +117,9 @@ public:
 	/** Enable IFileUpload callback */
 	void SetFileUpload(IFileUpload& cb);
 
+	bool ContentAvailable() const { return !m_content.empty(); }
+	const std::vector<char>& GetContent() const { return m_content; }
+
 private:
 	HttpdForm(const HttpdForm& ) {}
 	HttpdForm& operator=(const HttpdForm& ) { return *this; }
@@ -118,6 +129,7 @@ private:
 	bool raw;
 	IFileUpload *m_file_upload;
 	IStream *m_upload_stream;
+	std::vector<char> m_content;
 };
 
 

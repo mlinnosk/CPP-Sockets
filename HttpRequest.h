@@ -50,6 +50,10 @@ class HttpRequest : public HttpTransaction
 {
 public:
 	HttpRequest();
+	/** Create from plain old cgi request */
+#ifndef _WIN32
+	HttpRequest(FILE *);
+#endif
 	HttpRequest(const HttpRequest& src);
 	~HttpRequest();
 

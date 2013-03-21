@@ -42,6 +42,16 @@ namespace SOCKETS_NAMESPACE {
 
 File::File()
 :m_fil(NULL)
+,m_b_close(true)
+,m_rptr(0)
+,m_wptr(0)
+{
+}
+
+
+File::File(FILE *fil)
+:m_fil(fil)
+,m_b_close(false)
 ,m_rptr(0)
 ,m_wptr(0)
 {
@@ -50,6 +60,7 @@ File::File()
 
 File::File(const std::string& path, const std::string& mode)
 :m_fil(NULL)
+,m_b_close(true)
 ,m_rptr(0)
 ,m_wptr(0)
 {
@@ -59,7 +70,10 @@ File::File(const std::string& path, const std::string& mode)
 
 File::~File()
 {
-	fclose();
+	if (m_b_close)
+	{
+		fclose();
+	}
 }
 
 
@@ -135,9 +149,9 @@ void File::fprintf(const char *format, ...)
 		return;
 	va_list ap;
 	va_start(ap, format);
-	fseek(m_fil, m_rptr, SEEK_SET);
+	fseek(m_fil, m_wptr, SEEK_SET);
 	vfprintf(m_fil, format, ap);
-	m_rptr = ftell(m_fil);
+	m_wptr = ftell(m_fil);
 	va_end(ap);
 }
 

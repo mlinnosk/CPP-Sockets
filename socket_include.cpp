@@ -32,6 +32,10 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include <stdio.h>
 #include "socket_include.h"
 
+#ifdef SOCKETS_NAMESPACE
+namespace SOCKETS_NAMESPACE {
+#endif
+
 // only to be included in win32 projects
 const char *StrError(int x) 
 {
@@ -88,6 +92,10 @@ static	char tmp[100];
 	snprintf(tmp, sizeof(tmp), "Winsock error code: %d", x);
 	return tmp;
 }
+
+#ifdef SOCKETS_NAMESPACE
+}
+#endif
 
 
 

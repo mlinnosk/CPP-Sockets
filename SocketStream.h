@@ -33,6 +33,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifndef _SOCKETS_SocketStream_H
 #define _SOCKETS_SocketStream_H
 
+#include "sockets-config.h"
 #include "IStream.h"
 
 #include "socket_include.h"

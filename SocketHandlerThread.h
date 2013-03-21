@@ -31,6 +31,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifndef _SOCKETHANDLERTHREAD_H
 #define _SOCKETHANDLERTHREAD_H
 
+#include "sockets-config.h"
 #include "Thread.h"
 #include "Semaphore.h"
 

@@ -33,6 +33,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #ifndef _HttpBaseSocket_H
 #define _HttpBaseSocket_H
 
+#include "sockets-config.h"
 #include "HTTPSocket.h"
 #include "HttpRequest.h"
 #include "IHttpServer.h"

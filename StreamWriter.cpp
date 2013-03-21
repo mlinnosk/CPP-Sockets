@@ -80,13 +80,6 @@ StreamWriter& StreamWriter::operator<<(long x)
 }
 
 
-StreamWriter& StreamWriter::operator<<(int64_t x)
-{
-  *this << Utility::bigint2string(x);
-  return *this;
-}
-
-
 StreamWriter& StreamWriter::operator<<(double x)
 {
   *this << Utility::ToString(x);

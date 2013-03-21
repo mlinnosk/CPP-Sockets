@@ -719,7 +719,7 @@ void UdpSocket::AddMulticastMembership(const std::string& group, const std::stri
 	{
 		memcpy(&x.imr_multiaddr.s_addr, &addr, sizeof(addr));
 		Utility::u2ip( local_if, addr);
-		memcpy(&x.imr_interface.s_addr, &addr, sizeof(addr));
+		memcpy(&x.imr_interface.s_addr, &addr, sizeof(x.imr_interface.s_addr));
 //		x.imr_ifindex = if_index;
 		if (setsockopt(GetSocket(), SOL_IP, IP_ADD_MEMBERSHIP, (char *)&x, sizeof(struct ip_mreq)) == -1)
 		{
@@ -760,7 +760,7 @@ void UdpSocket::DropMulticastMembership(const std::string& group, const std::str
 	{
 		memcpy(&x.imr_multiaddr.s_addr, &addr, sizeof(addr));
 		Utility::u2ip( local_if, addr);
-		memcpy(&x.imr_interface.s_addr, &addr, sizeof(addr));
+		memcpy(&x.imr_interface.s_addr, &addr, sizeof(x.imr_interface.s_addr));
 //		x.imr_ifindex = if_index;
 		if (setsockopt(GetSocket(), SOL_IP, IP_DROP_MEMBERSHIP, (char *)&x, sizeof(struct ip_mreq)) == -1)
 		{
@@ -850,7 +850,7 @@ void UdpSocket::SetTimestamp(bool x)
 void UdpSocket::SetMulticastDefaultInterface(ipaddr_t a, int if_index)
 {
 	struct in_addr x;
-	memcpy(&x.s_addr, &a, sizeof(a));
+	memcpy(&x.s_addr, &a, sizeof(x.s_addr));
 	if (setsockopt(GetSocket(), IPPROTO_IP, IP_MULTICAST_IF, (char *)&x, sizeof(x)) == -1)
 	{
 		Handler().LogError(this, "SetMulticastDefaultInterface(ipv4)", Errno, StrError(Errno), LOG_LEVEL_WARNING);

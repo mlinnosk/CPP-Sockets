@@ -1,6 +1,7 @@
 #include "Json.h"
 #include <sstream>
 #include "Utility.h"
+#include <cstdio>
 
 #define C buffer[index]
 
@@ -29,12 +30,6 @@ Json::Json(short value) : m_type(TYPE_INTEGER), m_i_value(value)
 
 // --------------------------------------------------------------------------------
 Json::Json(long value) : m_type(TYPE_INTEGER), m_i_value(value)
-{
-}
-
-
-// --------------------------------------------------------------------------------
-Json::Json(int64_t value) : m_type(TYPE_INTEGER), m_i_value(value)
 {
 }
 
@@ -106,13 +101,6 @@ Json::operator short() const
 
 // --------------------------------------------------------------------------------
 Json::operator long() const
-{
-	return m_i_value;
-}
-
-
-// --------------------------------------------------------------------------------
-Json::operator int64_t() const
 {
 	return m_i_value;
 }

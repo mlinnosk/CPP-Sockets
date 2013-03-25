@@ -69,7 +69,7 @@ typedef __int64 int64_t;
 #endif
 #endif
 
-#ifndef _WIN32 
+#ifndef _WIN32
 // ----------------------------------------
 // common unix includes / defines
 #include <sys/time.h>
@@ -77,6 +77,7 @@ typedef __int64 int64_t;
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <unistd.h>
 
 // all typedefs in this file will be declared outside the sockets namespace,
 // because some os's will already have one or more of the type defined.
